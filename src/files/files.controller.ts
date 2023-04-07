@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Header,
@@ -11,12 +12,31 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { FileElementResponse } from "./dto/file-element.response";
-import { FilesService } from "./files.service";
+import { FilesService, FileType } from "./files.service";
 import { MFile } from "./dto/mfile.class";
 import { createReadStream } from "node:fs";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 import { Response } from "express";
+import { diskStorage } from "multer";
+import * as path from "node:path";
+import { randomUUID } from "node:crypto";
 
+
+export const storage = {
+  storage: diskStorage({
+    destination: "./uploads/profileimages",
+    filename: (req, file, cb) => {
+      const filename: string = path.parse(file.originalname).name.replace(/\s/g, "") + randomUUID();
+      const extension: string = path.parse(file.originalname).ext;
+      //const extension: string = path.extname(file.originalname);
+      cb(null, `${filename}${extension}`);
+    }
+  }),
+  limits: {
+    fileSize: 1e7, // the max file size in bytes, here it's 100MB,
+    files: 1,
+  },
+};
 
 
 @Controller("files")
@@ -96,8 +116,66 @@ export class FilesController {
       res = await this.filesService.ResizeAndSaveFile(file.buffer, ext);
     }
 
-    return res
+    return res;
 
+  }
+
+
+  @Post("/upload-fileS3")
+  @UseInterceptors(FileInterceptor("file"))
+  async addImageToRecipe(@UploadedFile() file: Express.Multer.File) {
+    console.log(file);
+    const bucketKey = `${file.fieldname}${Date.now()}`;
+    // const fileUrl = await this.s3Service.uploadFile(file, bucketKey);
+    //await this.recipeRepository.update({ id }, { image: fileUrl });
+    return { bucketKey };
+  }
+
+
+  @Post("profile-image")
+  @UseInterceptors(FileInterceptor("file", storage))
+  profileImage(@UploadedFile() file: Express.Multer.File) {
+    return { filename: file.filename };
+  }
+
+  @Get("profile-image/:imagename")
+  findProfileImage(@Param("imagename") imagename, @Res() res: Response) {
+    return res.sendFile(path.join(process.cwd(), "uploads/profileimages", imagename));
+  }
+
+
+  @Post("/upload-file")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: diskStorage({
+        destination: "./uploads",
+        filename: (req, file, callback) => {
+          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          const filename = `${uniqueSuffix}${ext}`;
+          callback(null, filename);
+        }
+      }),
+      limits: {
+        fileSize: 1e7, // the max file size in bytes, here it's 100MB,
+        files: 1,
+      },
+    })
+  )
+  handleUpload(@UploadedFile() file: Express.Multer.File) {
+    //console.log("file", file);
+    return { ...file, path: file.destination + "/" + file.filename };
+  }
+
+
+  @Post("post")
+  @UseInterceptors(FileInterceptor("image"))
+  async createPost(@Body() dto: any, @UploadedFile() image) {
+    console.log(dto);
+    //return this.postService.create( dto, image);
+    const fileName = await this.filesService.createFile(FileType.IMAGE,image);
+    //return await this.postRepository.create({ ...dto, image: fileName });
+    return { body: dto, fileName };
   }
 
 

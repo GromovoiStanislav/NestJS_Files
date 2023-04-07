@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { FileElementResponse } from "./dto/file-element.response";
 import { format } from "date-fns";
 import { join } from "node:path";
@@ -6,7 +6,14 @@ import { ensureDir, writeFile } from "fs-extra";
 import * as sharp from "sharp";
 import { MFile } from "./dto/mfile.class";
 import { v4 } from "uuid";
+import * as fs from "node:fs";
+import { randomUUID } from "node:crypto";
 
+
+export enum FileType {
+  AUDIO = "audio",
+  IMAGE = "image"
+}
 
 @Injectable()
 export class FilesService {
@@ -53,6 +60,25 @@ export class FilesService {
       res.push({ url: `${s}/${filename}`, name: filename });
     }
     return res;
-
   }
+
+  async createFile(type: FileType, file): Promise<string> {
+    try {
+      const fileExtension = file.originalname.split(".").pop();
+      //const fileExtension: string = path.parse(file.originalname).ext;
+      //const fileExtension: string = path.extname(file.originalname);
+      const fileName = randomUUID() + "." + fileExtension;
+      //const filePath = join(__dirname, "..", "uploads", type);
+      const filePath = join(process.cwd(), "uploads", type);
+      if (!fs.existsSync(filePath)) {
+        fs.mkdirSync(filePath, { recursive: true });
+      }
+      fs.writeFileSync(join(filePath, fileName), file.buffer);
+      return type + "/" + fileName;
+    } catch (e) {
+      throw new InternalServerErrorException("Произошла ошибка при записи файла");
+      //throw new InternalServerErrorException(e.message);
+    }
+  }
+
 }
