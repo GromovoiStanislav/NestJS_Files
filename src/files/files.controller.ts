@@ -34,8 +34,8 @@ export const storage = {
   }),
   limits: {
     fileSize: 1e7, // the max file size in bytes, here it's 100MB,
-    files: 1,
-  },
+    files: 1
+  }
 };
 
 
@@ -158,8 +158,8 @@ export class FilesController {
       }),
       limits: {
         fileSize: 1e7, // the max file size in bytes, here it's 100MB,
-        files: 1,
-      },
+        files: 1
+      }
     })
   )
   handleUpload(@UploadedFile() file: Express.Multer.File) {
@@ -173,7 +173,7 @@ export class FilesController {
   async createPost(@Body() dto: any, @UploadedFile() image) {
     console.log(dto);
     //return this.postService.create( dto, image);
-    const fileName = await this.filesService.createFile(FileType.IMAGE,image);
+    const fileName = await this.filesService.createFile(FileType.IMAGE, image);
     //return await this.postRepository.create({ ...dto, image: fileName });
     return { body: dto, fileName };
   }
@@ -208,5 +208,12 @@ export class FilesController {
     return new StreamableFile(file);
   }
 
+
+  @Get(":image")
+  seeImage(
+    @Param("image") image: string,
+    @Res() res: Response) {
+    res.sendFile(image, { root: join(process.cwd(), 'uploads') });
+  }
 
 }
