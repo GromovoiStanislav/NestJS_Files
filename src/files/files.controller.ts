@@ -195,6 +195,7 @@ export class FilesController {
       "Content-Disposition": `attachment; filename="${filename}"`
     });
 
+    // file.pipe(res);
     return new StreamableFile(file);
   }
 
