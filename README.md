@@ -1,1 +1,1 @@
-## NestJS - Files upload/download and sharp
+## NestJS - Files upload/download
