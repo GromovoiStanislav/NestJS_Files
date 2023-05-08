@@ -1,0 +1,89 @@
+{
+	"info": {
+		"_postman_id": "7449adf6-4540-4ed6-b401-7aed06a17beb",
+		"name": "nest-file-uploading",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "single",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "image",
+							"type": "file",
+							"src": "/H:/albert.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/single",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"single"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "multiple",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "image",
+							"type": "file",
+							"src": [
+								"/H:/87592.jpg",
+								"/H:/albert.jpg"
+							]
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3000/multiple",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"multiple"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": ":imgpath",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/albert-e10ed.jpg",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"albert-e10ed.jpg"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
