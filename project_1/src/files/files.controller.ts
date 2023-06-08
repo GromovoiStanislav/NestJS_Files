@@ -45,6 +45,24 @@ export class FilesController {
   constructor(private filesService: FilesService) {
   }
 
+
+  @Post("/create-thumb")
+  @UseInterceptors(FileInterceptor("file"))
+  @Header("Content-Type", "image/png")
+  async createThumb(@UploadedFile() file: Express.Multer.File) {
+
+    const output = await this.filesService.createThumb(file.buffer);
+    return new StreamableFile(output);
+
+    // OR:
+
+    // const fileName = await this.filesService.createThumbWithFile(file.buffer);
+    // const output = createReadStream(fileName);
+    // return new StreamableFile(output);
+
+  }
+
+
   @Post("upload")
   @UseInterceptors(FileInterceptor("file"))
   async uploadFile(@UploadedFile() file: Express.Multer.File): Promise<FileElementResponse[]> {
@@ -213,7 +231,8 @@ export class FilesController {
   seeImage(
     @Param("image") image: string,
     @Res() res: Response) {
-    res.sendFile(image, { root: join(process.cwd(), 'uploads') });
+    res.sendFile(image, { root: join(process.cwd(), "uploads") });
   }
+
 
 }

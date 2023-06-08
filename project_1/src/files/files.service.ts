@@ -5,9 +5,11 @@ import { join } from "node:path";
 import { ensureDir, writeFile } from "fs-extra";
 import * as sharp from "sharp";
 import { MFile } from "./dto/mfile.class";
-import { v4 } from "uuid";
 import * as fs from "node:fs";
+
 import { randomUUID } from "node:crypto";
+import { v4 } from "uuid";
+import { ulid } from "ulid";
 
 
 export enum FileType {
@@ -40,6 +42,35 @@ export class FilesService {
   async resizeTo(file: Buffer, size: number): Promise<Buffer> {
     return sharp(file).resize(size, size).toBuffer();
   }
+
+
+  async createThumb(file: Buffer) {
+    return sharp(file).resize(100, 100, {
+      kernel: sharp.kernel.nearest,
+      fit: "contain", //"cover" | "contain" | "fill"
+      background: { r: 0, g: 0, b: 0, alpha: 1.0 },
+      position: "center" // "center" | "top" | "bottom" | "right top" ...
+    })
+      //.toFormat('png')
+      .png()
+      .toBuffer();
+  }
+
+  async createThumbWithFile(file: Buffer) {
+    const fileName = join(process.cwd(), "uploads", `${ulid()}.png`);
+    await sharp(file).resize(100, 100, {
+      kernel: sharp.kernel.nearest,
+      fit: "contain",//"cover" | "contain" | "fill"
+      background: { r: 0, g: 0, b: 0, alpha: 1.0 },
+      position: "center" // "center" | "top" | "bottom" | "right top" ...
+    })
+      //.toFormat('png')
+      .png()
+      //.toFile(`uploads/${fileName}.png`)
+      .toFile(fileName);
+    return fileName;
+  }
+
 
   async ResizeAndSaveFile(file: Buffer, ext: string): Promise<FileElementResponse[]> {
     const sizes = ["25X25", "50X50", "50X50", "200X200", "400X400", "900X900"];
@@ -80,5 +111,6 @@ export class FilesService {
       //throw new InternalServerErrorException(e.message);
     }
   }
+
 
 }
